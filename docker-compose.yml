@@ -1,0 +1,58 @@
+version: '3.1'
+services:
+  php:
+    container_name: ebooks-php-fpm
+    build:
+      context: ./php
+    ports:
+      - 9001:9000
+    networks:
+      - eBooks-bridge-network
+    volumes:
+      - ./app:/var/www/
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+  nginx:
+    container_name: ebooks-nginx
+    build:
+      context: ./nginx
+    ports:
+      - 8887:80
+    volumes:
+      - ./app:/var/www/
+      - ./app/storage/app/public:/var/www/public/storage
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - eBooks-bridge-network
+  adminer:
+    container_name: ebooks-adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8008:8080
+    networks:
+      - eBooks-bridge-network
+  db:
+    image: mysql:5.7
+    container_name: eBook_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: ebooks
+      MYSQL_USER: qweqwe
+      MYSQL_PASSWORD: admin
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - 6633:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - eBooks-bridge-network
+
+volumes:
+  mysql_data:
+
+networks:
+  eBooks-bridge-network:
+    driver: bridge
